@@ -9,37 +9,22 @@ class QRGeneratorApp:
         self.root.title("QR Code Generator")
         self.root.geometry("500x650")
         self.root.resizable(False, False)
-
         self.logo_path = None
         self.qr_image = None
-
-        # URL entry
         tk.Label(root, text="Enlace para el QR:").pack(pady=5)
         self.url_entry = tk.Entry(root, width=50)
         self.url_entry.pack(pady=5)
-
-        # Button to upload logo
         self.logo_btn = tk.Button(root, text="Subir Logo", command=self.upload_logo)
         self.logo_btn.pack(pady=5)
-
-        # Label to show logo info
         self.logo_label = tk.Label(root, text="Sin logo")
         self.logo_label.pack(pady=5)
-
-        # Checkbox para recortar el QR debajo del logo
         self.cut_var = tk.BooleanVar(value=True)
         self.cut_checkbox = tk.Checkbutton(root, text="Recortar QR debajo del logo", variable=self.cut_var)
         self.cut_checkbox.pack(pady=5)
-
-        # Button to generate QR
         self.generate_btn = tk.Button(root, text="Generar QR", command=self.generate_qr)
         self.generate_btn.pack(pady=10)
-
-        # Label to display QR image
         self.qr_label = tk.Label(root)
         self.qr_label.pack(pady=10)
-
-        # Button to save QR
         self.save_btn = tk.Button(root, text="Guardar QR", command=self.save_qr, state=tk.DISABLED)
         self.save_btn.pack(pady=10)
 
@@ -60,7 +45,6 @@ class QRGeneratorApp:
         qr.make()
         qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
 
-        # Hacer transparente el fondo blanco
         datas = qr_img.getdata()
         newData = []
         for item in datas:
@@ -81,7 +65,6 @@ class QRGeneratorApp:
                    (qr_img.size[1] - logo.size[1]) // 2)
 
             if self.cut_var.get():
-                # Recortar el QR debajo del logo haciendo transparente esa zona
                 alpha = qr_img.split()[3]
                 for x in range(pos[0], pos[0] + logo.size[0]):
                     for y in range(pos[1], pos[1] + logo.size[1]):
@@ -89,7 +72,6 @@ class QRGeneratorApp:
                             alpha.putpixel((x, y), 0)
                 qr_img.putalpha(alpha)
 
-            # Pegar el logo (con transparencia si tiene)
             qr_img.paste(logo, pos, logo)
 
         self.qr_image = qr_img
