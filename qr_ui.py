@@ -1,7 +1,5 @@
 import qrcode
 from PIL import Image, ImageTk
-import requests
-from io import BytesIO
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
@@ -9,7 +7,7 @@ from tkinter import filedialog, messagebox
 class QRGeneratorApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("QR Code Generator with Logo")
+        self.root.title("QR Code Generator")
         self.root.geometry("500x600")
         self.root.resizable(False, False)
 
@@ -53,25 +51,60 @@ class QRGeneratorApp:
             messagebox.showerror("Error", "Por favor ingrese un enlace.")
             return
 
+        # Generar QR con fondo blanco y luego hacerlo transparente
         qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
         qr.add_data(url)
         qr.make()
-        qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
+        qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
+
+        # Hacer transparente el fondo blanco
+        datas = qr_img.getdata()
+        newData = []
+        for item in datas:
+            if item[0] > 200 and item[1] > 200 and item[2] > 200:
+                newData.append((255, 255, 255, 0))  # transparente
+            else:
+                newData.append(item)
+        qr_img.putdata(newData)
 
         if self.logo_path:
-            logo = Image.open(self.logo_path)
+            logo = Image.open(self.logo_path).convert("RGBA")
             basewidth = qr_img.size[0] // 4
             wpercent = basewidth / float(logo.size[0])
             hsize = int(float(logo.size[1]) * float(wpercent))
             logo = logo.resize((basewidth, hsize), Image.LANCZOS)
 
             pos = ((qr_img.size[0] - logo.size[0]) // 2,
-                   (qr_img.size[1] - logo.size[1]) // 2)
-            qr_img.paste(logo, pos, mask=logo if logo.mode == 'RGBA' else None)
+                (qr_img.size[1] - logo.size[1]) // 2)
 
+            # Modificar alfa para hacer transparente la zona del logo
+            alpha = qr_img.split()[3]
+            for x in range(pos[0], pos[0] + logo.size[0]):
+                for y in range(pos[1], pos[1] + logo.size[1]):
+                    if 0 <= x < alpha.width and 0 <= y < alpha.height:
+                        alpha.putpixel((x, y), 0)
+            qr_img.putalpha(alpha)
+
+            # Pegar logo con transparencia
+            qr_img.paste(logo, pos, logo)
+            
         self.qr_image = qr_img
         self.show_qr(qr_img)
         self.save_btn.config(state=tk.NORMAL)
+
+    def make_white_background_transparent(img: Image.Image) -> Image.Image:
+        img = img.convert("RGBA")
+        datas = img.getdata()
+
+        newData = []
+        for item in datas:
+            # Si el píxel es blanco (o casi blanco), hacerlo transparente
+            if item[0] > 240 and item[1] > 240 and item[2] > 240:
+                newData.append((255, 255, 255, 0))
+            else:
+                newData.append(item)
+        img.putdata(newData)
+        return img
 
     def show_qr(self, img):
         img_tk = ImageTk.PhotoImage(img.resize((300, 300)))
