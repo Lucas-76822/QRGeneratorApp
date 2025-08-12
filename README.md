@@ -13,3 +13,9 @@ Generador de códigos QR con interfaz gráfica (Tkinter) que permite:
 - Paquetes Python:
   - `qrcode`
   - `pillow`
+ 
+---
+
+### Link del Ejecutable
+
+[QR-Generator](https://mega.nz/file/VtJDiY4Y#LsIfaZhCzYO-REdd_XDhIZBEZUaW94OskoxujciMTII)
